@@ -188,4 +188,64 @@ class HttpController extends AbstractController
      * et vide la session
      * Dans cette page, si la session est vide, rediriger vers le formulaire
      */
+
+    /**
+     * @param Request $request
+     * @return Response
+     *
+     * @Route("/formulaire")
+     */
+    public function formulaire(Request $request)
+    {
+        $error = '';
+
+        if ($request->isMethod('POST')) {
+            $email = $request->request->get('email');
+            $message = $request->request->get('message');
+
+            if (empty($email) || empty($message)) {
+                $error = 'Les champs sont obligatoires';
+            } else {
+                $session = $request->getSession();
+                $session->set('email', $email);
+                $session->set('message', $message);
+
+                return $this->redirectToRoute('app_http_resultat');
+            }
+        }
+
+        return $this->render(
+            'http/formulaire.html.twig',
+            [
+                'error' => $error
+            ]
+        );
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @Route("/resultat")
+     */
+    public function resultat(Request $request)
+    {
+        $session = $request->getSession();
+
+        if ($session->isEmpty()) {
+            return $this->redirectToRoute('app_http_formulaire');
+        }
+
+        $email = $session->get('email');
+        $message = $session->get('message');
+
+        $session->clear();
+
+        return $this->render(
+            'http/resultat.html.twig',
+            [
+                'email' => $email,
+                'message' => $message
+            ]
+        );
+    }
 }
